@@ -51,6 +51,6 @@ public class DemoDbContext : DbContext
     // Default to dbo namespace
     public DbSet<TypeI> TableI { get; set; }
     public DbSet<TypeII> TableII { get; set; }
-    public DbSet<TypeIII> TableIII { get; set; }
-}  
-</code>  
+    public DbSet<TypeIII> TableIII { get; set; }}  
+</code>
+<h2>OData Endpoint</h2>
