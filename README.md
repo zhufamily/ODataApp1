@@ -136,7 +136,7 @@ public ActionResult Delete([FromRoute] int key)
 }
 </code>
 <h2>Run OData Application</h2>
-I assume you are a developer with experiences for SQL Server, VS 2022 and PostMan, or at least have some familarity with those tools.  Apparently, you need to know basics for OData v4 protocols.    
+I assume you are a developer with experiences for SQL Server, VS 2022 and PostMan, or at least have some familarity with those tools.  Apparently, you need to know basics for OData v4 protocols.  This tutorial is built on .NET 6 with Entity Framework Core 6; you can certainly upgrade to .NET8 with Entity Framework 8 and all principals will stay the very same.    
 <ol>
     <li>Clone the repository to local</li>
     <li>Use SSMS to connect to an empty SQL Server database and run script "demoTables" to create three tables</li>
