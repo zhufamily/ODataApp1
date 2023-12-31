@@ -1,14 +1,15 @@
-<h1>A tutorial for SQL Server and OData endpoint with Entity Framework Core</h1>
-<h2>SQL Serve</h2>
-The first step is to set up a SQL Server database.  I know, I know lots of you might scream for a code first approach.  However, in a real enterprise or big development environment, database is usually controlled by DB administrators rather than developers, and further more, outside development environment, frontend application codes might have limited or no access to DDL but only fully access to DML.  So, I try to simulate the real world senario rather then some conceptional design approach.  Please refer to https://github.com/zhufamily/ODataApp1/blob/main/demoTables.sql for more details. 
+<h1>A tutorial for SQL Server OData endpoint with Entity Framework Core</h1>
+This is a brief tutorial for SQL Sever backend, OData through http(s) as frontend, with Entity Framework Core as middle-tier.
+<h2>SQL Server</h2>
+The first step is to set up some sample tables inside a SQL Server database.  I know, I know lots of you might scream for a code first approach.  However, in a real enterprise or big development environment, database is usually controlled by DB administrators rather than developers, and further more, outside development environment, frontend application codes might have limited or no access to DDL but only full access to DML.  So, I try to simulate the real world senario rather then some conceptional design approaches.  Please refer to https://github.com/zhufamily/ODataApp1/blob/main/demoTables.sql for more code details. 
 <h3>Tables</h3>
 <ol>
-<li>Country table parent table for Aiport table (one-to-many).</li>
-<li>Airport table child of Country table, and parent table for AirportMetric table (one-to-one).</li>
-<li>AirportMetric table child table for Airport table.</li>
+<li>Country table -- parent table for Aiport table (one-to-many).</li>
+<li>Airport table -- child table of Country table, and parent table for AirportMetric table (one-to-one).</li>
+<li>AirportMetric table -- child table for Airport table.</li>
 </ol>  
 <h2>.Net Core Project for Data Models and Data Context</h2>
-Next, we are going to set up a .NET Core Library project for data models and data context.  The reason we setup a separate project is that we can reuse that in the future, e.g., OData endpoint, or SQL related Azure Function, or web application frontend and etc.  If you are inside Visual Studio, there is a GUI tool, you can download here -- https://marketplace.visualstudio.com/items?itemName=ErikEJ.EFCorePowerTools, at the moment, it supportes Entity Framework Core 6-8.  Otherwise, you can refer to command line tool https://learn.microsoft.com/en-us/ef/core/cli/ or simply setup POCO classes manually.  Please refer to https://github.com/zhufamily/ODataApp1/tree/main/DataModel for more details.
+Next, we are going to set up a .NET Core Library project for data models and data context.  The reason we setup a separate project is that we can reuse that in the future, e.g., OData endpoint, or SQL related Azure Function, or web application frontend and etc.  If you are inside Visual Studio, there is a GUI tool, you can download here -- https://marketplace.visualstudio.com/items?itemName=ErikEJ.EFCorePowerTools, at the moment, it supportes Entity Framework Core 6-8.  Otherwise, you can refer to command line tool https://learn.microsoft.com/en-us/ef/core/cli/ or simply setup POCO classes manually.  Please refer to https://github.com/zhufamily/ODataApp1/tree/main/DataModel for more details.  Create a folder called "Models" and for every table, there will be a corresponding POCO class; and inside POCO class database fields are mapped to class attributes.
 <h3>Primary Key</h3>
 For primary key field, just annotate with "[Key]" attribute.
 <code>
@@ -38,7 +39,7 @@ public int ParentID { get; set; }
 public virtual ParentType Parent { get; set; }  
 </code>
 <h3>DB Context</h3>
-This is a simple wrapper classes for all tables, or classes inside Models for data project.
+This is a simple wrapper class for all tables, or classes inside Models folder for the project.  Create a folder called "Data" and put the context class in that folder.
 <code>
 public class DemoDbContext : DbContext
 {
@@ -51,7 +52,7 @@ public class DemoDbContext : DbContext
 }  
 </code>
 <h2>OData Endpoint</h2>
-You can strat with an empty ASP.NET Core project, then following steps below.  For more details, please refer to https://github.com/zhufamily/ODataApp1/tree/main/ODataApp1.
+You can strat with an empty ASP.NET Core project, then follow steps below.  For more code details, please refer to https://github.com/zhufamily/ODataApp1/tree/main/ODataApp1.
 <h3>Add Database Connections</h3>
 Find a file named "appsettings.json", and then add a configiration value
 <code>
