@@ -135,6 +135,26 @@ public ActionResult Delete([FromRoute] int key)
     return NoContent();
 }
 </code>
+<h3>Modify Program.cs</h3>
+Finally, you will make some changes to Program.cs to register controllers.
+<code>
+var modelBuilder = new ODataConventionModelBuilder();
+modelBuilder.EntitySet<Country>("Countries");
+modelBuilder.EntitySet<Airport>("Airports");
+modelBuilder.EntitySet<AirportMetric>("AirportMetrics");
+</code>    
+Also, you need registering OData endpoint.
+<code>
+builder.Services.AddControllers().AddOData(
+    options => options.EnableQueryFeatures(null).AddRouteComponents(
+        "odata",
+        modelBuilder.GetEdmModel()));    
+</code>
+At the end, initialize the database context.
+<code>
+var configValue = builder.Configuration.GetValue<string>("DemoDbConnectionString");
+builder.Services.AddDbContext<DemoDbContext>(options => options.UseSqlServer(configValue));
+</code>    
 <h2>Run OData Application</h2>
 I assume you are a developer with experiences for SQL Server, VS 2022 and PostMan, or at least have some familarity with those tools.  Apparently, you need to know basics for OData v4 protocols.  This tutorial is built on .NET 6 with Entity Framework Core 6; you can certainly upgrade to .NET8 with Entity Framework 8 and all principals will stay the very same.    
 <ol>
