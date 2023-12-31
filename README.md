@@ -1,5 +1,5 @@
 <h1>A tutorial for SQL Server OData endpoint with Entity Framework Core</h1>
-This is a brief tutorial for SQL Sever backend, OData through http(s) as frontend, with Entity Framework Core as middle-tier.
+This is a brief tutorial for SQL Sever as backend, OData through http(s) as frontend, with Entity Framework Core as middle-tier.
 <h2>SQL Server</h2>
 The first step is to set up some sample tables inside a SQL Server database.  I know, I know lots of you might scream for a code first approach.  However, in a real enterprise or big development environment, database is usually controlled by DB administrators rather than developers, and further more, outside development environment, frontend application codes might have limited or no access to DDL but only full access to DML.  So, I try to simulate the real world senario rather then some conceptional design approaches.  Please refer to https://github.com/zhufamily/ODataApp1/blob/main/demoTables.sql for more code details. 
 <h3>Tables</h3>
@@ -28,7 +28,7 @@ public int ParentID { get; set; }
 public virtual ParentType Parent { get; set; }  
 </code>
 <h3>One-to-one relationship</h3>
-One to one relationship is rare used, but useful in certain situations, e.g., partial data are sensitive to security needs more access control.  Usually, one entity is considered as base (parent) entity and other one is considered as attached (child) entity.  Therefore, for one base entity it could have zero or one attached entity; while for one attached entity there will be one and only one base entity.  From parent entity, it will be a virtual child object, no foreign key annotation needed.
+One to one relationship is rarely used, but useful in certain situations, e.g., partial data are sensitive so more access control will be needed.  Usually, one entity is considered as base (parent) entity and other one is considered as attached (child) entity.  Therefore, for one base entity it could have zero or one attached entity; while for one attached entity there will be one and only one base entity.  From parent entity, it will be a virtual child object, no foreign key annotation needed.
 <code>
 public virtual ChildType? Child { get; set; }  
 </code>
@@ -52,7 +52,7 @@ public class DemoDbContext : DbContext
 }  
 </code>
 <h2>OData Endpoint</h2>
-You can strat with an empty ASP.NET Core project, then follow steps below.  For more code details, please refer to https://github.com/zhufamily/ODataApp1/tree/main/ODataApp1.
+You can start with an empty ASP.NET Core project, then follow steps below.  For more code details, please refer to https://github.com/zhufamily/ODataApp1/tree/main/ODataApp1.
 <h3>Add Database Connections</h3>
 Find a file named "appsettings.json", and then add a configiration value
 <code>
@@ -61,7 +61,7 @@ Find a file named "appsettings.json", and then add a configiration value
 <h3>Add Controllers</h3>
 Create a folder called "Controllers",  then add controllers for OData containers (which are corresponding to tables inside the database).  For this project, there are three controllers, and they are very similiar; here we just discuss more details for the CountriesController, and the same principles can be applied to other controllers.
 <h4>Init Database Context with Context Injection</h4>
-Later on you will see how to init the database context for the whole application inside Program.cs        
+Later on you will see how to initialize the database context for the whole application inside Program.cs        
 <code>
 private readonly DemoDbContext db;
 public CountriesController(DemoDbContext db)
@@ -83,7 +83,7 @@ public ActionResult<Country> Get([FromRoute] int key)
 }
 </code>
 <h4>Add Create/Update/Delete operations</h4>
-The patch operation is the recommendded way for update, however put is still supported by OData.  The difference are very clear that patch only update attributes inside the payload while put update the entire record for all attributes.  Only insertion will return a record for all other operations will NOT retuen contents.  You have to query again to confirm the update results.
+The patch operation is the recommendded way for update, however put is still supported by OData v4 protocols.  The differences are very clear that patch only updates attributes inside the payload while put updates the entire record for all attributes.  Only insertion will return a record for all other operations there will be NO return contents.  You have to query again to confirm results.
 <code>
 public ActionResult Post([FromBody] Country country)
 {
@@ -144,7 +144,7 @@ modelBuilder.EntitySet<Country>("Countries");
 modelBuilder.EntitySet<Airport>("Airports");
 modelBuilder.EntitySet<AirportMetric>("AirportMetrics");
 </code>    
-Also, you need registering OData endpoint.
+Also, you need registering the OData endpoint.
 <code>
 builder.Services.AddControllers().AddOData(
     options => options.EnableQueryFeatures(null).AddRouteComponents(
@@ -160,7 +160,7 @@ builder.Services.AddDbContext<DemoDbContext>(options => options.UseSqlServer(con
 I assume you are a developer with experiences for SQL Server, VS 2022 and PostMan, or at least have some familarity with those tools.  Apparently, you need to know basics for OData v4 protocols.  This tutorial is built on .NET 6 with Entity Framework Core 6; you can certainly upgrade to .NET8 with Entity Framework 8 and all principals will stay the very same.    
 <ol>
     <li>Clone the repository to local</li>
-    <li>Use SSMS to connect to an empty SQL Server database and run script "demoTables" to create three tables</li>
+    <li>Use SSMS to connect to an empty SQL Server database and run script "demoTables.sql" to create three tables</li>
     <li>Open the solution with VS2022</li>
     <li>If needed reload all nuget packages</li>
     <li>Set up startup project to ODataApp1</li>
