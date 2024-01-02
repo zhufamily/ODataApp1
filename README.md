@@ -9,14 +9,16 @@ The first step is to set up some sample tables inside a SQL Server database.  I 
 <li>AirportMetric table -- child table for Airport table.</li>
 </ol>  
 <h2>.Net Core Project for Data Models and Data Context</h2>
-Next, we are going to set up a .NET Core Library project for data models and data context.  The reason we setup a separate project is that we can reuse that in the future, e.g., OData endpoint, or SQL related Azure Function, or web application frontend and etc.  If you are inside Visual Studio, there is a GUI tool, you can download here -- https://marketplace.visualstudio.com/items?itemName=ErikEJ.EFCorePowerTools, at the moment, it supportes Entity Framework Core 6-8.  Otherwise, you can refer to command line tool https://learn.microsoft.com/en-us/ef/core/cli/ or simply setup POCO classes manually.  Please refer to https://github.com/zhufamily/ODataApp1/tree/main/DataModel for more details.  Create a folder called "Models" and for every table, there will be a corresponding POCO class; and inside POCO class database fields are mapped to class attributes.
-<h3>Primary Key</h3>
+Next, we are going to set up a .NET Core Library project for data models and data context.  The reason we setup a separate project is that we can reuse that in the future, e.g., OData endpoint, or SQL related Azure Function, or web application frontend and etc.  
+<h3>Models</h3>
+If you are inside Visual Studio, there is a GUI tool, you can download here -- https://marketplace.visualstudio.com/items?itemName=ErikEJ.EFCorePowerTools, at the moment, it supportes Entity Framework Core 6-8.  Otherwise, you can refer to command line tools https://learn.microsoft.com/en-us/ef/core/cli/ or simply setup POCO classes manually.  Please refer to https://github.com/zhufamily/ODataApp1/tree/main/DataModel for more details.  Create a folder called "Models" and for every table, there will be a corresponding POCO class; and inside POCO class database fields are mapped to class attributes.
+<h4>Primary Key</h4>
 For primary key field, just annotate with "[Key]" attribute.
 <code>
 [Key] // primary key
 public int ID { get; set; }
 </code>
-<h3>One-to-many relationship</h3>
+<h4>One-to-many relationship</h4>
 This is the most common relationship inside relational database, which can also cover many-to-many relationship with two one-to-many relationships.  It is quite easy to implement, from parent side, it will be a virtual iCollection.
 <code>
 public virtual ICollection<ChildType> Children { get; set; }
@@ -27,7 +29,7 @@ On the child side, it will be a virtual parent object.
 public int ParentID { get; set; }
 public virtual ParentType Parent { get; set; }  
 </code>
-<h3>One-to-one relationship</h3>
+<h4>One-to-one relationship</h4>
 One to one relationship is rarely used, but useful in certain situations, e.g., partial data are sensitive so more access control will be needed.  Usually, one entity is considered as base (parent) entity and other one is considered as attached (child) entity.  Therefore, for one base entity it could have zero or one attached entity; while for one attached entity there will be one and only one base entity.  From parent entity, it will be a virtual child object, no foreign key annotation needed.
 <code>
 public virtual ChildType? Child { get; set; }  
