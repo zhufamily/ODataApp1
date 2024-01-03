@@ -170,3 +170,52 @@ I assume you are a developer with experiences for SQL Server, VS 2022 and PostMa
     <li>Click start debug button</li>
     <li>Work with PostMan to see results</li>
 </ol>
+<h2>Bonus -- Azure function Triggered by SQLServer</h2>
+Now, it is still preview for Azure function triggered by SQL -- https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-azure-sql-trigger?tabs=isolated-process%2Cportal&pivots=programming-language-csharp.  I include that in the solution to demo Data Models and Data Context can be used for multiple applications, as well as play with the particular trigger type.  For more code details, please refer to https://github.com/zhufamily/ODataApp1/tree/main/SQLFunctApp1.
+<h3>Set Up Tracking inside SQL Server database</h3>
+Before you can write Azure function for SQL trigger, you need setting up SQL Server Database -- https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-azure-sql-trigger?tabs=isolated-process%2Cportal&pivots=programming-language-csharp#set-up-change-tracking-required.  In this case, set uo the databaes and three tables for tracking.
+<h3>SQL Trigger</h3>
+Create a new Azure function, now, there is no template for SQL trigger, so you just put following codes manually.
+<code>
+ [FunctionName("CountryInsertTrigger")]
+public void Run(
+    [SqlTrigger("[dbo].[Country]", "SQL_CONN_STR")]
+    IReadOnlyList<SqlChange<Country>> changes,
+    ILogger logger)    
+</code>
+<h3>Context Injection for Database Context</h3>
+Follow the Context Injection pattern -- https://learn.microsoft.com/en-us/azure/azure-functions/functions-dotnet-dependency-injection, you can initialize the database context in a startup.cs as shown below.
+<code>
+﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+[assembly: FunctionsStartup(typeof(SQLFunctApp1.StartUp))]
+
+namespace SQLFunctApp1
+{
+    using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.DependencyInjection;
+    using OData.Data;
+    using System;
+
+    public class StartUp : FunctionsStartup
+    {
+        public override void Configure(IFunctionsHostBuilder builder)
+        {
+            string connectionString = Environment.GetEnvironmentVariable("SQL_CONN_STR");
+            builder.Services.AddDbContext<DemoDbContext>(
+              options => SqlServerDbContextOptionsExtensions.UseSqlServer(options, connectionString));  
+        }
+    }
+}
+</code>        
+Then, you can inject the context for each class as shown below.
+<code>
+ private readonly DemoDbContext _db;
+
+public SqlFunction(DemoDbContext db)
+{
+    this._db = db; 
+}
+</code>
+<h3>Set up Environment Variable</h3>
+As you have seen, there is an environment variable "SQL_CONN_STR", so please set that up, of course you can use key-vault if needed to protext the connection string.
