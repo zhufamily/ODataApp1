@@ -173,7 +173,7 @@ I assume you are a developer with experiences for SQL Server, VS 2022 and PostMa
 <h2>Bonus -- Azure function Triggered by SQLServer</h2>
 Now, it is still preview for Azure function triggered by SQL -- https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-azure-sql-trigger?tabs=isolated-process%2Cportal&pivots=programming-language-csharp.  I include that in the solution to demo Data Models and Data Context can be used for multiple applications, as well as play with the particular trigger type.  For more code details, please refer to https://github.com/zhufamily/ODataApp1/tree/main/SQLFunctApp1.
 <h3>Set Up Tracking inside SQL Server database</h3>
-Before you can write Azure function for SQL trigger, you need setting up SQL Server Database -- https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-azure-sql-trigger?tabs=isolated-process%2Cportal&pivots=programming-language-csharp#set-up-change-tracking-required.  In this case, set uo the databaes and three tables for tracking.
+Before you can write Azure function for SQL trigger, you need setting up SQL Server Database -- https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-azure-sql-trigger?tabs=isolated-process%2Cportal&pivots=programming-language-csharp#set-up-change-tracking-required.  In this case, set up the databaes and three tables for tracking.
 <h3>SQL Trigger</h3>
 Create a new Azure function, now, there is no template for SQL trigger, so you just put following codes manually.
 <code>
@@ -210,7 +210,7 @@ namespace SQLFunctApp1
 </code>        
 Then, you can inject the context for each class as shown below.
 <code>
- private readonly DemoDbContext _db;
+private readonly DemoDbContext _db;
 
 public SqlFunction(DemoDbContext db)
 {
@@ -219,3 +219,46 @@ public SqlFunction(DemoDbContext db)
 </code>
 <h3>Set up Environment Variable</h3>
 As you have seen, there is an environment variable "SQL_CONN_STR", so please set that up, of course you can use key-vault if needed to protext the connection string.
+<h3>Further Thinking</h3>
+After played a while with the SQL triggered function, here are some limitations and ideas.
+<ol>
+    <li>It is async trigger, i.e., it will NOT roll back transaction in case of failure.</li>
+    <li>It can only provide new values, but not old values.</li>
+    <li>Performance is no where near native triggers inside the SQL Server.</li>
+    <li>Extra tables for tracking and azure function leasing needs to be created, and data will transport outside SQL Server security domain.</li>
+    <li>My personal feeling is that, if you need an aysnc triiger to integrate with other systems, this could be a great choice.</li>
+    <li>If you trigger is purely DDL inside the database, I do not really recommend this approach due to its limitations above.</li>
+    <li>Last, you can follow this pattern to have a native async trigger.
+        <code>
+CREATE TRIGGER [trigger_name]
+   ON [table_name]
+   AFTER INSERT|UPDATE|DELETE
+AS 
+BEGIN
+    -- do not interfere with counts
+    SET NOCOUNT ON;
+    -- trigger is async, i.e. will NOT rollback main TRAN
+    SET XACT_ABORT OFF;	
+    -- save main TRAN to the point
+    SAVE TRANSACTION Before_Trigger;
+    BEGIN TRY
+        DDL Statements Here ...
+    END TRY
+    BEGIN CATCH
+        -- only roll back to the point saved
+        ROLLBACK TRANSACTION Before_Trigger;
+        -- raise error
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+
+        RAISERROR (@ErrorMessage,	-- Message text.
+            @ErrorSeverity,			-- Severity.
+            @ErrorState				-- State.
+        );
+    END CATCH
+END
+        </code>
+    </li>
+    <li>For each action, you can combine into one sync trigger and one async trigger then use this commamd -- https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-settriggerorder-transact-sql?view=sql-server-ver16 to ensure the sync trigger running before async trigger.</li>
+</ol>
